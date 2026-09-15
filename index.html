@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trailblazer Character Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="introOverlay" class="introOverlay">
+  <div class="introModal">
+    <button class="iconBtn introModal__close" data-action="close-intro" title="Close">✕</button>
+    <div class="introModal__eyebrow">📡 Incoming transmission</div>
+    <h2>Welcome aboard, trailblazer</h2>
+    <p>This is your dossier — attributes, gear, and powers all update themselves as you play, and everything saves right here in this browser. Pick a species, origin, role, and path below and the rest falls into place.</p>
+    <p>Safe travels out there.</p>
+    <button class="btn btn--full" data-action="close-intro">Let's fly</button>
+  </div>
+</div>
+<div class="page">
+
+  <!-- ============================= MASTHEAD ============================= -->
+  <header class="masthead">
+    <div class="masthead__top">
+      <div class="nameField">
+        <label for="nameInput">Character name</label>
+        <input id="nameInput" type="text" placeholder="Unnamed trailblazer" data-action="set-name">
+      </div>
+      <div class="buildField buildField--narrow">
+        <label class="fieldLabel" for="levelInput">Level</label>
+        <input id="levelInput" type="number" min="1" max="12" data-action="set-level">
+      </div>
+      <div class="buildField buildField--narrow">
+        <label class="fieldLabel" for="xpInput">XP</label>
+        <input id="xpInput" type="number" min="0" data-action="set-xp">
+        <span id="xpNextLabel" class="xpLine"></span>
+      </div>
+    </div>
+
+    <div class="buildRow">
+      <div class="buildField">
+        <label class="fieldLabel" for="speciesSelect">Species</label>
+        <select id="speciesSelect" data-action="set-species"></select>
+      </div>
+      <div class="buildField">
+        <label class="fieldLabel" for="originSelect">Origin</label>
+        <select id="originSelect" data-action="set-origin"></select>
+      </div>
+      <div class="buildField">
+        <label class="fieldLabel" for="roleSelect">Role</label>
+        <select id="roleSelect" data-action="set-role"></select>
+      </div>
+      <div class="buildField">
+        <label class="fieldLabel" for="pathSelect">Path</label>
+        <select id="pathSelect" data-action="set-path"></select>
+      </div>
+      <div class="buildField">
+        <label class="fieldLabel" for="pathwaySelect">Pathway</label>
+        <select id="pathwaySelect" data-action="set-pathway"></select>
+      </div>
+    </div>
+
+    <div id="buildChips" class="chipRow"></div>
+  </header>
+
+  <!-- ============================== VITALS =============================== -->
+  <div class="vitals">
+    <div class="hpBlock">
+      <span class="vital__label">HP</span>
+      <button class="smallBtn" data-action="hp-delta" data-delta="-1" title="-1 HP">−</button>
+      <div class="hpInputs">
+        <input id="hpCurrentInput" type="number" min="0" data-action="set-hp-current" title="Current HP">
+        <span>/</span>
+        <input id="hpMaxInput" type="number" min="0" data-action="set-hp-max" title="Max HP (set from your rolled hit dice)">
+      </div>
+      <button class="smallBtn" data-action="hp-delta" data-delta="1" title="+1 HP">+</button>
+      <div class="hpBar"><div id="hpBarFill" class="hpBarFill"></div></div>
+    </div>
+    <div class="vital"><span class="vital__label">AR</span><span id="arValue" class="vital__value"></span></div>
+    <div class="vital"><span class="vital__label">SL·Phys</span><span id="slpValue" class="vital__value"></span></div>
+    <div class="vital"><span class="vital__label">SL·Ment</span><span id="slmValue" class="vital__value"></span></div>
+    <div class="vital"><span class="vital__label">SL·Spir</span><span id="slsValue" class="vital__value"></span></div>
+    <div class="vital exhaustionVital" title="Exhaustion">
+      <span class="vital__label">Exh</span>
+      <button class="smallBtn" data-action="exhaustion-delta" data-delta="-1" title="-1 Exhaustion">−</button>
+      <span id="exhaustionValue" class="vital__value"></span>
+      <button class="smallBtn" data-action="exhaustion-delta" data-delta="1" title="+1 Exhaustion">+</button>
+      <button class="btn btn--ghost btn--small" data-action="exhaustion-rest-short" title="Short rest: clear 1 point">Short rest</button>
+      <button class="btn btn--ghost btn--small" data-action="exhaustion-rest-long" title="Long rest: clear 2 points">Long rest</button>
+    </div>
+  </div>
+
+  <!-- ========================== PENDING CHOICES =========================== -->
+  <div id="choicePrompts"></div>
+
+  <!-- ============================== MAIN GRID ============================= -->
+  <div class="mainGrid">
+
+    <!-- Column A: Attributes -->
+    <div>
+      <section class="card">
+        <h2 class="card__title">Attributes</h2>
+        <div id="attrBox"></div>
+      </section>
+    </div>
+
+    <!-- Column B: Skills -->
+    <section class="card">
+      <h2 class="card__title">Skills <small>Adept adds a bonus die, Inept subtracts one</small></h2>
+      <div id="skillsBox"></div>
+    </section>
+
+    <!-- Column C: Path resources, Saving rolls, Proficiencies -->
+    <div>
+      <section class="card">
+        <h2 class="card__title">Path resources</h2>
+        <div id="resourceTotals"></div>
+        <div class="adjRow">AP adjustment <input id="apAdj" type="number" data-action="set-ap-adj"></div>
+        <div id="mpAdjWrap" class="adjRow">MP adjustment <input id="mpAdj" type="number" data-action="set-mp-adj"></div>
+        <div id="ppAdjWrap" class="adjRow">PP adjustment <input id="ppAdj" type="number" data-action="set-pp-adj"></div>
+        <div id="slotsBox"></div>
+        <button class="btn btn--ghost btn--full" data-action="open-picker" data-type="advancement">+ Purchase an advancement</button>
+        <div id="advancementsList" style="margin-top:0.6rem;"></div>
+      </section>
+
+      <section class="card">
+        <h2 class="card__title">Saving rolls</h2>
+        <div id="savesBox"></div>
+      </section>
+
+      <section class="card">
+        <h2 class="card__title">Proficiencies &amp; traits</h2>
+        <div id="profBox"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ============================== ATTACKS =============================== -->
+  <section class="card">
+    <h2 class="card__title">Attacks <button class="btn btn--small" data-action="open-picker" data-type="weapon">+ Add weapon</button></h2>
+    <div id="attacksBox"></div>
+  </section>
+
+  <!-- ============================== POWERS =============================== -->
+  <section id="powersSection" class="card">
+    <h2 class="card__title">Powers <small id="readiedCount"></small></h2>
+    <div id="powersKnownList"></div>
+    <button class="btn btn--ghost btn--full" data-action="open-picker" data-type="power">+ Learn a power</button>
+  </section>
+
+  <!-- ============================== MUTATIONS =============================== -->
+  <section id="mutationsSection" class="card">
+    <h2 class="card__title">Mutations</h2>
+    <label class="checkline" style="margin-bottom:0.5rem;"><input id="enragedToggle" type="checkbox" data-action="toggle-enraged"> Currently enraged (mutations are only usable while enraged)</label>
+    <div id="mutationsKnownList"></div>
+    <button class="btn btn--ghost btn--full" data-action="open-picker" data-type="mutation">+ Learn a mutation</button>
+  </section>
+
+  <!-- ============================== INVENTORY =============================== -->
+  <section class="card">
+    <h2 class="card__title">Equipment &amp; inventory</h2>
+    <div class="buildRow" style="margin-bottom:0.6rem;">
+      <div class="buildField">
+        <label class="fieldLabel" for="armorSelect">Armor equipped</label>
+        <select id="armorSelect" data-action="set-armor"></select>
+      </div>
+      <div class="buildField buildField--narrow" style="justify-content:flex-end;">
+        <span class="fieldLabel">Carrying</span>
+        <span id="bulkMeter" class="bulkMeter"></span>
+      </div>
+    </div>
+    <p id="armorSetNote" class="armorSetNote"></p>
+    <div id="inventoryList"></div>
+    <div class="footActions" style="margin-top:0.6rem;">
+      <button class="btn btn--ghost" data-action="open-picker" data-type="item">+ Add item</button>
+      <button class="btn btn--ghost" data-action="open-picker" data-type="modification">+ Add modification</button>
+    </div>
+  </section>
+
+  <!-- ============================== FEATURES =============================== -->
+  <section class="card">
+    <h2 class="card__title">Features &amp; traits unlocked</h2>
+    <div id="featuresBox"></div>
+  </section>
+
+  <!-- ============================== NOTES =============================== -->
+  <section class="card">
+    <h2 class="card__title">Notes</h2>
+    <textarea id="notesArea" data-action="set-notes" placeholder="Backstory, Vessel details, contacts, loose threads…"></textarea>
+  </section>
+
+  <div class="footRow">
+    <span>Saved automatically in this browser.</span>
+    <div class="footActions">
+      <button id="backupBtn" class="btn btn--ghost btn--small">Download backup</button>
+      <label for="loadBackupInput" class="btn btn--ghost btn--small">Load backup</label>
+      <input id="loadBackupInput" type="file" accept="application/json" style="display:none">
+      <button id="resetBtn" class="btn btn--ghost btn--small">Clear character</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== PICKER MODAL ============================= -->
+<div id="pickerOverlay">
+  <div class="pickerModal">
+    <div class="pickerModal__head">
+      <h3 id="pickerTitle"></h3>
+      <button class="iconBtn" data-action="close-picker" title="Close">✕</button>
+    </div>
+    <div id="pickerFilters"></div>
+    <div id="pickerList"></div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
